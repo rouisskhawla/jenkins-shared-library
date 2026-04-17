@@ -13,14 +13,14 @@ class Versioning {
         patch = patch + buildNumber.toInteger()
 
         if (branch == "dev") {
-            return "${imageName}:${major}.${minor}.${patch}-dev-${shortCommit}"
+            return "${major}.${minor}.${patch}-dev-${shortCommit}"
         }
 
         if (branch == "main") {
-            return "${imageName}:${major}.${minor}.${patch}-${shortCommit}"
+            return "${major}.${minor}.${patch}-${shortCommit}"
         }
         else {
-            return "${imageName}:${major}.${minor}.${patch}-${branch}-${shortCommit}"
+            return "${major}.${minor}.${patch}-${branch}-${shortCommit}"
         }
 
         return "${major}.${minor}.${patch}-${shortCommit}"
