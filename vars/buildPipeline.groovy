@@ -1,3 +1,5 @@
+import org.devops.Versioning
+
 def call(Map config = [:]) {
 
     def serviceDir = config.serviceDir ?: error("serviceDir required")
@@ -22,19 +24,15 @@ def call(Map config = [:]) {
         stages {
 
             stage('Compute Version') {
-             /*    when {
-                    changeset "${serviceDir}/**"
-                }
-            */
                 steps {
                     script {
-                        sh 'ls -al'
-                        sh 'chmod +x scripts/version.sh'
 
-                        env.VERSION = sh(
-                            script: "scripts/version.sh ${imageName} ${branch}",
-                            returnStdout: true
-                        ).trim()
+                        env.VERSION = Versioning.generate(
+                            imageName,
+                            env.BRANCH_NAME,
+                            env.BUILD_NUMBER,
+                            env.GIT_COMMIT
+                        )
 
                         echo "Computed version: ${env.VERSION}"
                     }
@@ -42,9 +40,6 @@ def call(Map config = [:]) {
             }
 
             stage('Build Maven') {
-                // when {
-                //     changeset "${serviceDir}/**"
-                // }
                 tools {
                     maven 'Maven 3.9.11'
                     jdk 'jdk17'
@@ -57,9 +52,6 @@ def call(Map config = [:]) {
             }
 
             stage('Docker Build') {
-                // when {
-                //     changeset "${serviceDir}/**"
-                // }
                 steps {
                     script {
                         docker.withRegistry(dockerRegistry, dockerCreds) {
@@ -70,9 +62,6 @@ def call(Map config = [:]) {
             }
 
             stage('Docker Push') {
-                // when {
-                //     changeset "${serviceDir}/**"
-                // }
                 steps {
                     script {
                         docker.withRegistry(dockerRegistry, dockerCreds) {
