@@ -23,6 +23,6 @@ class Versioning {
             return "${imageName}:${major}.${minor}.${patch}-${branch}-${shortCommit}"
         }
 
-        return "${imageName}:${major}.${minor}.${patch}-${shortCommit}"
+        return "${major}.${minor}.${patch}-${shortCommit}"
     }
 }
