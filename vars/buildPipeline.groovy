@@ -128,7 +128,7 @@ Proceed?
 
                             sh """
                                 helm upgrade --install ${serviceName} charts/microservice \
-                                -f helm-values/${helmValuesDir}/${valuesFile} \
+                                -f ${helmValuesDir}/${valuesFile} \
                                 --set global.imageTag=${env.VERSION} \
                                 --namespace ${namespace} \
                                 --create-namespace
