@@ -77,15 +77,6 @@ def call(Map config = [:]) {
             }
 
             stage('Deploy to Kubernetes') {
-                when {
-                    allOf {
-                        anyOf {
-                            branch 'dev'
-                            branch 'main'
-                        }
-                    }
-                }
-
                 steps {
                     script {
 
