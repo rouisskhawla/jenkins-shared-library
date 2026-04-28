@@ -4,6 +4,7 @@ def call(Map config = [:]) {
 
     def serviceDir = config.serviceDir ?: error("serviceDir required")
     def imageName  = config.imageName  ?: error("imageName required")
+    def serviceName = config.serviceName ?: error("serviceName required")
 
     def dockerRegistry = config.dockerRegistry ?: 'https://index.docker.io/v1/'
     def dockerCreds    = config.dockerCredentialsId ?: 'dockerlogin'
