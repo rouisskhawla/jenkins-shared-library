@@ -8,8 +8,8 @@ def call(Map config = [:]) {
     def dockerRegistry = config.dockerRegistry ?: 'https://index.docker.io/v1/'
     def dockerCreds    = config.dockerCredentialsId ?: 'dockerlogin'
 
-    //def kubeDev  = config.kubeconfigDev  ?: 'kubeconfig-dev'
-    //def kubeProd = config.kubeconfigProd ?: 'kubeconfig-prod'
+    def kubeDev  = config.kubeconfigDev  ?: 'kubeconfig-dev'
+    def kubeProd = config.kubeconfigProd ?: 'kubeconfig-prod'
 
     def branch = env.BRANCH_NAME
 
@@ -76,83 +76,82 @@ def call(Map config = [:]) {
                 }
             }
 
-//             stage('Deploy to Kubernetes') {
-//                 when {
-//                     allOf {
-//                         changeset "${serviceDir}/**"
-//                         anyOf {
-//                             branch 'dev'
-//                             branch 'main'
-//                         }
-//                     }
-//                 }
+            stage('Deploy to Kubernetes') {
+                when {
+                    allOf {
+                        anyOf {
+                            branch 'dev'
+                            branch 'main'
+                        }
+                    }
+                }
 
-//                 steps {
-//                     script {
+                steps {
+                    script {
 
-//                         def namespace
-//                         def kubeCredId
-//                         def valuesFile
-//                         def environmentName
+                        def namespace
+                        def kubeCredId
+                        def valuesFile
+                        def environmentName
 
-//                         if (branch == 'dev') {
-//                             namespace = 'dev'
-//                             kubeCredId = kubeDev
-//                             valuesFile = "values-dev.yaml"
-//                             environmentName = "DEVELOPMENT"
-//                         } 
-//                         else if (branch == 'main') {
-//                             namespace = 'prod'
-//                             kubeCredId = kubeProd
-//                             valuesFile = "values-prod.yaml"
-//                             environmentName = "PRODUCTION"
-//                         }
+                        if (branch == 'dev') {
+                            namespace = 'dev'
+                            kubeCredId = kubeDev
+                            valuesFile = "values-dev.yaml"
+                            environmentName = "DEVELOPMENT"
+                        } 
+                        else if (branch == 'main') {
+                            namespace = 'prod'
+                            kubeCredId = kubeProd
+                            valuesFile = "values-prod.yaml"
+                            environmentName = "PRODUCTION"
+                        }
 
-//                         input(
-//                             message: """
-// CONFIRM DEPLOYMENT
+                        input(
+                            message: """
+CONFIRM DEPLOYMENT
 
-// Service      : ${serviceDir}
-// Image Repo   : ${imageName}
-// Computed Tag : ${env.VERSION}
-// Branch       : ${branch}
-// Environment  : ${environmentName}
-// Namespace    : ${namespace}
+Service      : ${serviceDir}
+Image Repo   : ${imageName}
+Computed Tag : ${env.VERSION}
+Branch       : ${branch}
+Environment  : ${environmentName}
+Namespace    : ${namespace}
 
-// Proceed?
-// """,
-//                             ok: "Deploy"
-//                         )
+Proceed?
+""",
+                            ok: "Deploy"
+                        )
 
-//                         withCredentials([file(credentialsId: kubeCredId, variable: 'KUBECONFIG')]) {
+                        withCredentials([file(credentialsId: kubeCredId, variable: 'KUBECONFIG')]) {
 
-//                             sh "kubectl cluster-info"
+                            sh "kubectl cluster-info"
 
-//                             sh """
-//                                 kubectl create namespace ${namespace} --dry-run=client -o yaml | kubectl apply -f -
-//                             """
+                            sh """
+                                kubectl create namespace ${namespace} --dry-run=client -o yaml | kubectl apply -f -
+                            """
 
-//                             sh """
-//                                 helm upgrade --install ${serviceDir} charts/microservice \
-//                                 -f helm-values/${serviceDir}/${valuesFile} \
-//                                 --set global.imageTag=${env.VERSION} \
-//                                 --namespace ${namespace} \
-//                                 --create-namespace
-//                             """
+                            sh """
+                                helm upgrade --install ${serviceDir} charts/microservice \
+                                -f helm-values/${serviceDir}/${valuesFile} \
+                                --set global.imageTag=${env.VERSION} \
+                                --namespace ${namespace} \
+                                --create-namespace
+                            """
 
-//                             sh """
-//                                 kubectl rollout status deployment/${serviceDir} -n ${namespace}
-//                             """
+                            sh """
+                                kubectl rollout status deployment/${serviceDir} -n ${namespace}
+                            """
 
-//                             sh """
-//                                 kubectl get pods -n ${namespace}
-//                                 kubectl get svc -n ${namespace}
-//                                 kubectl get ingress -n ${namespace}
-//                             """
-//                         }
-//                     }
-//                 }
-//             }
+                            sh """
+                                kubectl get pods -n ${namespace}
+                                kubectl get svc -n ${namespace}
+                                kubectl get ingress -n ${namespace}
+                            """
+                        }
+                    }
+                }
+            }
         }
 
         post {
