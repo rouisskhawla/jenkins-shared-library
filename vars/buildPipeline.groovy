@@ -85,7 +85,9 @@ def call(Map config = [:]) {
                         def kubeCredId
                         def valuesFile
                         def environmentName
+
                         def helmValuesDir = "services/helm-values/${serviceName}"
+                        def chartDir = "services/charts/microservice"
 
                         if (branch == 'dev') {
                             namespace = 'dev'
@@ -107,6 +109,7 @@ CONFIRM DEPLOYMENT
 Service Dir    : ${serviceDir}
 Service Name   : ${serviceName}
 Helm Values Dir: ${helmValuesDir}
+Chart Dir      : ${chartDir}
 Image Repo     : ${imageName}
 Computed Tag   : ${env.VERSION}
 Branch         : ${branch}
@@ -127,7 +130,7 @@ Proceed?
                             """
 
                             sh """
-                                helm upgrade --install ${serviceName} charts/microservice \
+                                helm upgrade --install ${serviceName} ${chartDir} \
                                 -f ${helmValuesDir}/${valuesFile} \
                                 --set global.imageTag=${env.VERSION} \
                                 --namespace ${namespace} \
