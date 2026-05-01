@@ -80,6 +80,18 @@ def call(Map config = [:]) {
                 }
             }
 
+            stage('Docker Build') {
+                steps {
+                    dir(serviceDir) {
+                        script {
+                            docker.withRegistry(dockerRegistry, dockerCreds) {
+                                docker.build("${imageName}:${env.VERSION}")
+                            }
+                        }
+                    }
+                }
+            }
+
             stage('Docker Push') {
                 steps {
                     script {
