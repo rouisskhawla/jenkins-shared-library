@@ -6,6 +6,8 @@ def call(Map config = [:]) {
     def imageName  = config.imageName  ?: error("imageName required")
     def serviceName = config.serviceName ?: error("serviceName required")
 
+    def serviceType  = config.type ?: 'backend'
+
     def dockerRegistry = config.dockerRegistry ?: 'https://index.docker.io/v1/'
     def dockerCreds    = config.dockerCredentialsId ?: 'dockerlogin'
 
@@ -20,6 +22,7 @@ def call(Map config = [:]) {
         environment {
             SERVICE_DIR = "${serviceDir}"
             IMAGE_NAME  = "${imageName}"
+            SERVICE_TYPE = "${serviceType}"
         }
 
         stages {
@@ -40,20 +43,40 @@ def call(Map config = [:]) {
                 }
             }
 
-            stage('Build Maven') {
-                tools {
-                    maven 'Maven 3.9.11'
-                    jdk 'jdk17'
-                }
+            stage('Build') {
                 steps {
-                    dir(serviceDir) {
-                        sh 'pwd'
-                        sh 'ls -la'
-                        sh 'mvn clean package -DskipTests'
+                    script {
+
+                        if (serviceType == 'backend') {
+
+                            tool name: 'Maven 3.9.11', type: 'maven'
+                            tool name: 'jdk17', type: 'jdk'
+
+                            dir(serviceDir) {
+                                sh 'mvn clean package -DskipTests'
+                            }
+
+                        } else if (serviceType == 'frontend') {
+
+                            tool name: 'Node 24', type: 'nodejs'
+
+                            dir(serviceDir) {
+                                sh 'npm ci'
+
+                                if (env.BRANCH_NAME == 'dev') {
+                                    sh 'npm run build -- --configuration development'
+                                } else {
+                                    sh 'npm run build -- --configuration production'
+                                }
+                            }
+
+                        } else {
+                            error("Unknown service type: ${serviceType}")
+                        }
                     }
                 }
             }
-            
+
             stage('Docker Build') {
                 steps {
                     dir(serviceDir) {
