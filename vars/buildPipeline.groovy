@@ -46,45 +46,35 @@ def call(Map config = [:]) {
             stage('Build') {
                 steps {
                     script {
-                        echo "Building ${serviceType} service in directory: ${serviceDir}"
 
                         if (serviceType == 'backend') {
 
-                            tool name: 'Maven 3.9.11', type: 'maven'
-                            tool name: 'jdk17', type: 'jdk'
-
                             dir(serviceDir) {
-                                sh 'mvn clean package -DskipTests'
+                                withEnv([
+                                    "JAVA_HOME=${tool 'jdk17'}",
+                                    "MAVEN_HOME=${tool 'Maven 3.9.11'}",
+                                    "PATH+MAVEN=${tool 'Maven 3.9.11'}/bin",
+                                    "PATH+JAVA=${tool 'jdk17'}/bin"
+                                ]) {
+                                    sh 'mvn clean package -DskipTests'
+                                }
                             }
 
                         } else if (serviceType == 'frontend') {
 
-                            tool name: 'Node 24', type: 'nodejs'
-
                             dir(serviceDir) {
-                                sh 'npm ci'
-
-                                if (env.BRANCH_NAME == 'dev') {
-                                    sh 'npm run build -- --configuration development'
-                                } else {
-                                    sh 'npm run build -- --configuration production'
+                                nodejs('Node 24') {
+                                    sh 'npm ci'
+                                    if (env.BRANCH_NAME == 'dev') {
+                                        sh 'npm run build -- --configuration development'
+                                    } else {
+                                        sh 'npm run build -- --configuration production'
+                                    }
                                 }
                             }
 
                         } else {
                             error("Unknown service type: ${serviceType}")
-                        }
-                    }
-                }
-            }
-
-            stage('Docker Build') {
-                steps {
-                    dir(serviceDir) {
-                        script {
-                            docker.withRegistry(dockerRegistry, dockerCreds) {
-                                docker.build("${imageName}:${env.VERSION}")
-                            }
                         }
                     }
                 }
