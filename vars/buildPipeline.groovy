@@ -86,8 +86,8 @@ def call(Map config = [:]) {
                         def valuesFile
                         def environmentName
 
-                        def helmValuesDir = "services/helm-values/${serviceName}"
-                        def chartDir = "services/charts/microservice"
+                        def helmValuesDir = "../helm-values/${serviceName}"
+                        def chartDir = "../charts/microservice"
 
                         if (branch == 'dev') {
                             namespace = 'dev'
