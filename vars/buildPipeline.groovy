@@ -46,6 +46,7 @@ def call(Map config = [:]) {
             stage('Build') {
                 steps {
                     script {
+                        echo "Building ${serviceType} service in directory: ${serviceDir}"
 
                         if (serviceType == 'backend') {
 
