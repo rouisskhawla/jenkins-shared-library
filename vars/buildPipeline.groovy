@@ -47,16 +47,20 @@ def call(Map config = [:]) {
                 }
                 steps {
                     dir(serviceDir) {
+                        sh 'pwd'
+                        sh 'ls -la'
                         sh 'mvn clean package -DskipTests'
                     }
                 }
             }
-
+            
             stage('Docker Build') {
                 steps {
-                    script {
-                        docker.withRegistry(dockerRegistry, dockerCreds) {
-                            docker.build("${imageName}:${env.VERSION}", serviceDir)
+                    dir(serviceDir) {
+                        script {
+                            docker.withRegistry(dockerRegistry, dockerCreds) {
+                                docker.build("${imageName}:${env.VERSION}")
+                            }
                         }
                     }
                 }
@@ -86,8 +90,8 @@ def call(Map config = [:]) {
                         def valuesFile
                         def environmentName
 
-                        def helmValuesDir = "../helm-values/${serviceName}"
-                        def chartDir = "../charts/microservice"
+                        def helmValuesDir = "helm-values/${serviceName}"
+                        def chartDir = "charts/microservice"
 
                         if (branch == 'dev') {
                             namespace = 'dev'
