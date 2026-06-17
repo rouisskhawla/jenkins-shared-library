@@ -43,6 +43,45 @@ def call(Map config = [:]) {
                 }
             }
 
+            stage('Test') {
+                steps {
+                    script {
+                        if (serviceType == 'backend') {
+
+                            dir(serviceDir) {
+                                withEnv([
+                                    "JAVA_HOME=${tool 'jdk17'}",
+                                    "MAVEN_HOME=${tool 'Maven 3.9.11'}",
+                                ]) {
+                                    sh 'mvn test'
+                                }
+                            }
+
+                        } else if (serviceType == 'frontend') {
+
+                            dir(serviceDir) {
+                                nodejs('Node 24') {
+                                    sh 'npm ci'
+                                    sh 'npx vitest run --reporter=junit --outputFile=test-results/junit.xml'
+                                }
+                            }
+                    }
+                }
+                post {
+                    always {
+                        script {
+                            if (serviceType == 'backend') {
+                                junit allowEmptyResults: true,
+                                      testResults: "${serviceDir}/target/surefire-reports/TEST-*.xml"
+                            } else {
+                                junit allowEmptyResults: true,
+                                      testResults: "${serviceDir}/test-results/junit.xml"
+                            }
+                        }
+                    }
+                }
+            }
+
             stage('Build') {
                 steps {
                     script {
